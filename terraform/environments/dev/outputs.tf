@@ -35,3 +35,13 @@ output "cognito_client_id" {
 output "cognito_domain" {
   value = module.cognito.user_pool_domain
 }
+
+output "cloudfront_url" {
+  description = "CloudFront HTTPS URL"
+  value       = "https://${module.cloudfront.cloudfront_domain_name}"
+}
+
+output "cloudfront_domain" {
+  description = "CloudFront domain name"
+  value       = module.cloudfront.cloudfront_domain_name
+}

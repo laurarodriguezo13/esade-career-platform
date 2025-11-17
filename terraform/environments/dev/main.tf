@@ -43,3 +43,17 @@ module "cognito" {
   allowed_email_domains  = var.allowed_email_domains
   pre_signup_lambda_arn  = module.lambda.cognito_trigger_function_arn
 }
+
+# CloudFront Module
+module "cloudfront" {
+  source = "../../modules/cloudfront"
+  
+  s3_bucket_name             = module.s3.bucket_name
+  s3_bucket_website_endpoint = module.s3.website_endpoint
+  
+  tags = {
+    Environment = var.environment
+    Project     = var.project_name
+    ManagedBy   = "Terraform"
+  }
+}

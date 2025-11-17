@@ -12,7 +12,11 @@
             <h1>ESADE Career Intelligence Platform</h1>
             <nav>
                 <button id="loginBtn" class="btn-primary">Sign In</button>
-                <button id="logoutBtn" class="btn-secondary" style="display: none;">Sign Out</button>
+                <button id="signupBtn" class="btn-secondary">Sign Up</button>
+                <div id="userInfo" style="display: none;">
+                    <span id="userEmail"></span>
+                    <button id="logoutBtn" class="btn-secondary">Sign Out</button>
+                </div>
             </nav>
         </div>
     </header>
@@ -53,6 +57,48 @@
             </div>
         </section>
     </main>
+
+    <!-- Authentication Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2 id="authTitle">Sign In</h2>
+            
+            <div id="authMessage"></div>
+            
+            <form id="authFormElement" style="display: block;">
+                <input type="hidden" id="authMode" value="signin">
+                
+                <div class="form-group">
+                    <label for="emailInput">ESADE Email</label>
+                    <input type="email" id="emailInput" placeholder="your.name@esade.edu" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="passwordInput">Password</label>
+                    <input type="password" id="passwordInput" placeholder="Min. 8 characters" required>
+                </div>
+                
+                <button type="submit" class="btn-primary btn-block">Continue</button>
+            </form>
+            
+            <div id="verificationSection" style="display: none;">
+                <p>Enter the 6-digit verification code sent to your email:</p>
+                <div class="form-group">
+                    <input type="text" id="verificationCode" placeholder="000000" maxlength="6" required>
+                </div>
+                <button id="verifyBtn" class="btn-primary btn-block">Verify Email</button>
+                <button id="resendCode" class="btn-text">Resend Code</button>
+            </div>
+            
+            <p class="switch-mode">
+                <button id="switchMode" class="btn-text">
+                    <span class="switch-signin">Don't have an account? Sign up</span>
+                    <span class="switch-signup" style="display: none;">Already have an account? Sign in</span>
+                </button>
+            </p>
+        </div>
+    </div>
 
     <footer>
         <div class="container">
