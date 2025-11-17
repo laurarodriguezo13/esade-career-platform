@@ -7,7 +7,7 @@ let allJobs = [];
 function loadRecommendations() {
     console.log('Loading recommendations...');
     
-    // Real jobs from Adzuna API (stored in DynamoDB)
+    // ONLY REAL jobs from Adzuna API
     const realJobs = [
         {
             title: 'Data Scientist',
@@ -35,69 +35,6 @@ function loadRecommendations() {
             matchScore: 78,
             url: 'https://www.adzuna.es/details/5499720558?utm_medium=api&utm_source=b6b04941',
             description: 'Seasoned Operations Lead for Customer Success with SaaS industry experience.'
-        },
-        {
-            title: 'Product Manager',
-            company: 'Barcelona Tech Hub',
-            location: 'Barcelona',
-            skills: ['Product Management', 'Agile', 'Strategy'],
-            matchScore: 81,
-            url: '#',
-            description: 'Lead product strategy and development for innovative tech solutions.'
-        },
-        {
-            title: 'Business Analyst',
-            company: 'Consulting Firm BCN',
-            location: 'Barcelona',
-            skills: ['Business Analysis', 'Excel', 'SQL'],
-            matchScore: 76,
-            url: '#',
-            description: 'Analyze business processes and provide data-driven recommendations.'
-        },
-        {
-            title: 'Digital Marketing Manager',
-            company: 'E-commerce Barcelona',
-            location: 'Barcelona',
-            skills: ['Digital Marketing', 'SEO', 'Analytics'],
-            matchScore: 73,
-            url: '#',
-            description: 'Drive digital marketing strategy for growing e-commerce platform.'
-        },
-        {
-            title: 'Software Engineer',
-            company: 'Tech Startup BCN',
-            location: 'Barcelona',
-            skills: ['JavaScript', 'React', 'Node.js'],
-            matchScore: 88,
-            url: '#',
-            description: 'Build scalable web applications for innovative startup.'
-        },
-        {
-            title: 'Financial Analyst',
-            company: 'Investment Bank Madrid',
-            location: 'Madrid',
-            skills: ['Financial Modeling', 'Excel', 'SQL'],
-            matchScore: 79,
-            url: '#',
-            description: 'Analyze financial data and create investment recommendations.'
-        },
-        {
-            title: 'UX Designer',
-            company: 'Design Agency',
-            location: 'Barcelona',
-            skills: ['UX Design', 'Figma', 'User Research'],
-            matchScore: 71,
-            url: '#',
-            description: 'Create user-centered designs for digital products.'
-        },
-        {
-            title: 'Data Engineer',
-            company: 'Big Data Corp',
-            location: 'Madrid',
-            skills: ['Python', 'SQL', 'AWS'],
-            matchScore: 86,
-            url: '#',
-            description: 'Build and maintain data pipelines for analytics platform.'
         }
     ];
     
@@ -109,21 +46,19 @@ function loadRecommendations() {
     // Filter and sort jobs based on preferences
     let filteredJobs = filterJobsByPreferences(realJobs, userPreferences);
     
-    // Display top jobs
+    // Display all jobs (only 3 real ones)
     const container = document.getElementById('recommendedJobs');
-    displayJobs(filteredJobs.slice(0, 5), container);
+    displayJobs(filteredJobs, container);
     
     loadTrendingSkills();
 }
 
 function getUserPreferences() {
-    // Get from localStorage or use defaults
     const saved = localStorage.getItem('user_preferences');
     if (saved) {
         return JSON.parse(saved);
     }
     
-    // Default preferences
     return {
         skills: ['Python', 'Data Analysis', 'Machine Learning'],
         locations: ['Barcelona'],
@@ -132,11 +67,9 @@ function getUserPreferences() {
 }
 
 function filterJobsByPreferences(jobs, preferences) {
-    // Calculate match score based on user preferences
     return jobs.map(job => {
         let score = 0;
         
-        // Skill matching (40% weight)
         const skillMatches = job.skills.filter(skill => 
             preferences.skills.some(userSkill => 
                 skill.toLowerCase().includes(userSkill.toLowerCase()) ||
@@ -145,12 +78,10 @@ function filterJobsByPreferences(jobs, preferences) {
         ).length;
         score += (skillMatches / Math.max(job.skills.length, 1)) * 40;
         
-        // Location matching (30% weight)
         if (preferences.locations.includes(job.location)) {
             score += 30;
         }
         
-        // Base score (30% weight)
         score += 30;
         
         return {
@@ -220,7 +151,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Add preferences button
     addPreferencesButton();
 });
 
@@ -233,7 +163,6 @@ function performSearch() {
         return;
     }
     
-    // Filter jobs based on search term
     const filteredJobs = allJobs.filter(job => 
         job.title.toLowerCase().includes(searchTerm) ||
         job.company.toLowerCase().includes(searchTerm) ||
@@ -245,9 +174,8 @@ function performSearch() {
     if (filteredJobs.length === 0) {
         resultsContainer.innerHTML = `
             <p style="color: #666; margin-top: 1rem;">
-                No jobs found for "${searchTerm}". Try searching for:
-                <strong>data scientist</strong>, <strong>consultant</strong>, 
-                <strong>product manager</strong>, or <strong>marketing</strong>
+                No jobs found for "${searchTerm}". Currently showing ${allJobs.length} jobs from Adzuna API.
+                Try: <strong>data</strong>, <strong>systems</strong>, or <strong>operations</strong>
             </p>
         `;
     } else {
@@ -261,7 +189,6 @@ function performSearch() {
 }
 
 function addPreferencesButton() {
-    // Add preferences modal button to header
     const nav = document.querySelector('header nav');
     if (nav && !document.getElementById('preferencesBtn')) {
         const prefsBtn = document.createElement('button');
@@ -316,7 +243,6 @@ function showPreferencesModal() {
     
     document.body.appendChild(modal);
     
-    // Close on outside click
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             modal.remove();
@@ -343,13 +269,9 @@ function savePreferences() {
     const preferences = { skills, locations, industries };
     localStorage.setItem('user_preferences', JSON.stringify(preferences));
     
-    // Close modal
     document.querySelector('.modal').remove();
-    
-    // Reload recommendations with new preferences
     loadRecommendations();
     
-    // Show success message
     const message = document.createElement('div');
     message.style.cssText = `
         position: fixed;
