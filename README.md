@@ -104,7 +104,7 @@ esade-career-platform/
 
 ## 👥 Team
 
- Laura Rodriguez,Lorena Pinillos, Margi Ivanova , Kim Schäfer & Tasnim El Faghloumi
+ Laura Rodriguez, Lorena Pinillos, Margi Ivanova , Kim Schäfer & Tasnim El Faghloumi
 
 
 ---
