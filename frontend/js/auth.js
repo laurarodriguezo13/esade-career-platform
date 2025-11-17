@@ -1,20 +1,17 @@
-// Cognito Authentication using AWS SDK
+// Cognito Authentication
 const poolData = {
     UserPoolId: CONFIG.cognito.userPoolId,
     ClientId: CONFIG.cognito.clientId
 };
 
 let currentUser = null;
-let userPool = null;
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if user is already signed in
     initializeAuth();
 });
 
 function initializeAuth() {
-    // For demo, we'll check localStorage for a simple auth flag
     const authToken = localStorage.getItem('esade_auth_token');
     if (authToken) {
         currentUser = JSON.parse(localStorage.getItem('esade_user') || '{}');
@@ -29,14 +26,19 @@ function showWelcome() {
     document.getElementById('welcomeSection').style.display = 'block';
     document.getElementById('dashboardSection').style.display = 'none';
     document.getElementById('authModal').style.display = 'none';
+    document.getElementById('loginBtn').style.display = 'inline-block';
+    document.getElementById('signupBtn').style.display = 'inline-block';
+    document.getElementById('userInfo').style.display = 'none';
 }
 
 function showDashboard() {
     document.getElementById('welcomeSection').style.display = 'none';
     document.getElementById('dashboardSection').style.display = 'block';
     document.getElementById('authModal').style.display = 'none';
+    document.getElementById('loginBtn').style.display = 'none';
+    document.getElementById('signupBtn').style.display = 'none';
+    document.getElementById('userInfo').style.display = 'flex';
     
-    // Update user info if available
     if (currentUser && currentUser.email) {
         document.getElementById('userEmail').textContent = currentUser.email;
     }
@@ -47,14 +49,24 @@ function showAuthModal(mode) {
     document.getElementById('authTitle').textContent = mode === 'signup' ? 'Sign Up' : 'Sign In';
     document.getElementById('authMode').value = mode;
     
-    // Show/hide verification section
+    // Show/hide sections
     document.getElementById('verificationSection').style.display = 'none';
-    document.getElementById('authForm').style.display = 'block';
+    document.getElementById('authFormElement').style.display = 'block';
     
-    // Clear form
+    // Update switch mode text
+    if (mode === 'signup') {
+        document.querySelector('.switch-signin').style.display = 'none';
+        document.querySelector('.switch-signup').style.display = 'inline';
+    } else {
+        document.querySelector('.switch-signin').style.display = 'inline';
+        document.querySelector('.switch-signup').style.display = 'none';
+    }
+    
+    // Clear form and messages
     document.getElementById('emailInput').value = '';
     document.getElementById('passwordInput').value = '';
     document.getElementById('verificationCode').value = '';
+    document.getElementById('authMessage').innerHTML = '';
 }
 
 function closeAuthModal() {
@@ -64,21 +76,17 @@ function closeAuthModal() {
 // Sign Up Function
 async function handleSignUp(email, password) {
     try {
-        // Validate ESADE email
         if (!email.endsWith('@esade.edu') && !email.endsWith('@alumni.esade.edu')) {
             throw new Error('Please use an ESADE email address (@esade.edu or @alumni.esade.edu)');
         }
 
-        // For demo: simulate signup
         document.getElementById('authMessage').innerHTML = 
             '<div class="success-message">✅ Account created! Check your email for verification code.</div>';
         
-        // Store email temporarily
         localStorage.setItem('pending_email', email);
         localStorage.setItem('pending_password', password);
         
-        // Show verification section
-        document.getElementById('authForm').style.display = 'none';
+        document.getElementById('authFormElement').style.display = 'none';
         document.getElementById('verificationSection').style.display = 'block';
         
         return true;
@@ -92,18 +100,13 @@ async function handleSignUp(email, password) {
 // Verify Email Function
 async function handleVerifyEmail(code) {
     try {
-        const email = localStorage.getItem('pending_email');
-        
-        // For demo: accept any 6-digit code
         if (code.length === 6) {
             document.getElementById('authMessage').innerHTML = 
                 '<div class="success-message">✅ Email verified! Please sign in.</div>';
             
-            // Clear pending data
             localStorage.removeItem('pending_email');
             localStorage.removeItem('pending_password');
             
-            // Switch to sign in mode
             setTimeout(() => {
                 showAuthModal('signin');
             }, 2000);
@@ -122,14 +125,11 @@ async function handleVerifyEmail(code) {
 // Sign In Function
 async function handleSignIn(email, password) {
     try {
-        // Validate ESADE email
         if (!email.endsWith('@esade.edu') && !email.endsWith('@alumni.esade.edu')) {
             throw new Error('Please use an ESADE email address');
         }
 
-        // For demo: accept any password
         if (password.length >= 8) {
-            // Store auth token
             localStorage.setItem('esade_auth_token', 'demo_token_' + Date.now());
             localStorage.setItem('esade_user', JSON.stringify({ email: email }));
             
