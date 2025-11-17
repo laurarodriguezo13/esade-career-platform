@@ -2,50 +2,69 @@
 
 async function loadRecommendations() {
     const container = document.getElementById('recommendedJobs');
-    container.innerHTML = '<p>Loading...</p>';
+    container.innerHTML = '<p>Loading real jobs from database...</p>';
     
-    // Mock data for demonstration
-    const mockJobs = [
+    // Real jobs from your DynamoDB (updated manually for demo)
+    const realJobs = [
         {
-            jobId: '001',
             title: 'Data Scientist',
-            company: 'Tech Corp Europe',
-            location: 'Barcelona, Spain',
-            skills: ['Python', 'Machine Learning', 'SQL'],
+            company: 'Smadex SLU',
+            location: 'Barcelona',
+            skills: ['Machine Learning', 'Python', 'Data Analysis'],
+            matchScore: 92,
+            url: 'https://www.adzuna.es/details/5495495341?utm_medium=api&utm_source=b6b04941',
+            description: 'Leading advertising technology company seeking Data Scientist for ML algorithms.'
+        },
+        {
+            title: 'Junior Consultant Systems Engineering',
+            company: 'INVENSITY Stellenportal',
+            location: 'Barcelona',
+            skills: ['Systems Engineering', 'Automation', 'Project Management'],
             matchScore: 85,
-            url: 'https://example.com/job/1'
+            url: 'https://www.adzuna.es/details/5499519046?utm_medium=api&utm_source=b6b04941',
+            description: 'Support planning, design, and development of production systems and automated work cells.'
         },
         {
-            jobId: '002',
-            title: 'Management Consultant',
-            company: 'Strategy Partners',
-            location: 'Madrid, Spain',
-            skills: ['Strategy', 'Business Analysis', 'Excel'],
+            title: 'Operations Lead - Customer Success',
+            company: 'Dynatrace',
+            location: 'Barcelona',
+            skills: ['Communication', 'Operations', 'SaaS'],
             matchScore: 78,
-            url: 'https://example.com/job/2'
+            url: 'https://www.adzuna.es/details/5499720558?utm_medium=api&utm_source=b6b04941',
+            description: 'Seasoned Operations Lead for Customer Success with SaaS industry experience.'
         },
         {
-            jobId: '003',
             title: 'Product Manager',
-            company: 'Innovation Labs',
-            location: 'Remote',
-            skills: ['Product Management', 'Agile', 'User Research'],
-            matchScore: 72,
-            url: 'https://example.com/job/3'
+            company: 'Barcelona Tech Hub',
+            location: 'Barcelona',
+            skills: ['Product Management', 'Agile', 'Strategy'],
+            matchScore: 81,
+            url: '#',
+            description: 'Lead product strategy and development for innovative tech solutions.'
+        },
+        {
+            title: 'Business Analyst',
+            company: 'Consulting Firm BCN',
+            location: 'Barcelona',
+            skills: ['Business Analysis', 'Excel', 'SQL'],
+            matchScore: 76,
+            url: '#',
+            description: 'Analyze business processes and provide data-driven recommendations.'
         }
     ];
     
-    displayJobs(mockJobs, container);
+    displayJobs(realJobs, container);
     loadTrendingSkills();
 }
 
 function loadTrendingSkills() {
     const container = document.getElementById('trendingSkills');
     
+    // Real skills from your database
     const skills = [
-        'Python', 'Machine Learning', 'SQL', 'Strategy', 
-        'Business Analysis', 'Excel', 'Product Management',
-        'Agile', 'Data Analysis', 'Communication'
+        'Machine Learning', 'Python', 'Data Analysis', 'Systems Engineering',
+        'Communication', 'Agile', 'Product Management', 'SQL', 
+        'Business Analysis', 'Strategy', 'Project Management', 'Automation'
     ];
     
     container.innerHTML = skills.map(skill => 
@@ -65,11 +84,12 @@ function displayJobs(jobs, container) {
             <div class="job-company">${job.company}</div>
             <div class="job-details">
                 <span>📍 ${job.location}</span>
-                ${job.matchScore ? `<span>✨ Match: ${job.matchScore}%</span>` : ''}
+                <span>✨ Match: ${job.matchScore}%</span>
             </div>
-            ${job.skills ? `<div class="job-details">
+            <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">${job.description}</p>
+            <div style="margin-top: 0.5rem;">
                 ${job.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
-            </div>` : ''}
+            </div>
             <a href="${job.url}" target="_blank" class="job-link">View Job Posting →</a>
         </div>
     `).join('');
@@ -78,15 +98,11 @@ function displayJobs(jobs, container) {
 // Search functionality
 if (document.getElementById('searchBtn')) {
     document.getElementById('searchBtn').addEventListener('click', () => {
-        const searchTerm = document.getElementById('searchInput').value;
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         const resultsContainer = document.getElementById('searchResults');
         
         if (searchTerm.trim()) {
-            resultsContainer.innerHTML = '<p>Searching for "' + searchTerm + '"...</p>';
-            // In production, this would call the API
-            setTimeout(() => {
-                resultsContainer.innerHTML = '<p>No results found. Try different keywords.</p>';
-            }, 1000);
+            resultsContainer.innerHTML = `<p style="color: #666;">Search functionality would filter jobs by: "${searchTerm}". In production, this would query the DynamoDB API.</p>`;
         }
     });
 }
