@@ -104,7 +104,8 @@ esade-career-platform/
 
 ## 👥 Team
 
-Laura Rodriguez - ESADE Career Intelligence Team
+ Laura Rodriguez,Lorena Pinillos, Margi Ivanova , Kim Schäfer & Tasnim El Faghloumi
+
 
 ---
 
