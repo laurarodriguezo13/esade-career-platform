@@ -15,3 +15,9 @@ variable "environment" {
   type        = string
   default     = "dev"
 }
+
+variable "allowed_email_domains" {
+  description = "Allowed email domains for Cognito sign-up"
+  type        = list(string)
+  default     = ["esade.edu", "alumni.esade.edu"]
+}

@@ -1,12 +1,12 @@
-// Configuration - Update with your Terraform outputs
+// Configuration
 const CONFIG = {
     cognito: {
-        userPoolId: 'COPY_FROM_TERRAFORM_OUTPUT',
-        clientId: 'COPY_FROM_TERRAFORM_OUTPUT',
-        domain: 'COPY_FROM_TERRAFORM_OUTPUT',
+        userPoolId: 'eu-west-1_ezRebP9qf',
+        clientId: '4gr97dbmu2lhl598g948b4orrr',
+        domain: 'esade-career-dev-260727659404',
         region: 'eu-west-1'
     },
     api: {
-        endpoint: 'YOUR_API_GATEWAY_ENDPOINT' // We'll add this later
+        endpoint: '' // Will add API Gateway later
     }
 };
