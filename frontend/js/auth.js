@@ -1,22 +1,39 @@
-// Cognito Authentication
+// Real AWS Cognito Authentication
 const poolData = {
     UserPoolId: CONFIG.cognito.userPoolId,
     ClientId: CONFIG.cognito.clientId
 };
 
+const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
 let currentUser = null;
+let cognitoUser = null;
 
-// Initialize when page loads
+// Initialize
 document.addEventListener('DOMContentLoaded', function() {
     initializeAuth();
 });
 
 function initializeAuth() {
-    const authToken = localStorage.getItem('esade_auth_token');
-    if (authToken) {
-        currentUser = JSON.parse(localStorage.getItem('esade_user') || '{}');
-        showDashboard();
-        loadRecommendations();
+    cognitoUser = userPool.getCurrentUser();
+    
+    if (cognitoUser != null) {
+        cognitoUser.getSession((err, session) => {
+            if (err || !session.isValid()) {
+                showWelcome();
+                return;
+            }
+            
+            cognitoUser.getUserAttributes((err, attributes) => {
+                if (!err && attributes) {
+                    const emailAttr = attributes.find(attr => attr.Name === 'email');
+                    if (emailAttr) {
+                        currentUser = { email: emailAttr.Value };
+                        showDashboard();
+                        loadRecommendations();
+                    }
+                }
+            });
+        });
     } else {
         showWelcome();
     }
@@ -49,11 +66,9 @@ function showAuthModal(mode) {
     document.getElementById('authTitle').textContent = mode === 'signup' ? 'Sign Up' : 'Sign In';
     document.getElementById('authMode').value = mode;
     
-    // Show/hide sections
     document.getElementById('verificationSection').style.display = 'none';
     document.getElementById('authFormElement').style.display = 'block';
     
-    // Update switch mode text
     if (mode === 'signup') {
         document.querySelector('.switch-signin').style.display = 'none';
         document.querySelector('.switch-signup').style.display = 'inline';
@@ -62,7 +77,6 @@ function showAuthModal(mode) {
         document.querySelector('.switch-signup').style.display = 'none';
     }
     
-    // Clear form and messages
     document.getElementById('emailInput').value = '';
     document.getElementById('passwordInput').value = '';
     document.getElementById('verificationCode').value = '';
@@ -73,92 +87,144 @@ function closeAuthModal() {
     document.getElementById('authModal').style.display = 'none';
 }
 
-// Sign Up Function
+// Real Sign Up with Cognito
 async function handleSignUp(email, password) {
-    try {
+    return new Promise((resolve, reject) => {
         if (!email.endsWith('@esade.edu') && !email.endsWith('@alumni.esade.edu')) {
-            throw new Error('Please use an ESADE email address (@esade.edu or @alumni.esade.edu)');
+            document.getElementById('authMessage').innerHTML = 
+                '<div class="error-message">❌ Please use an ESADE email address (@esade.edu or @alumni.esade.edu)</div>';
+            return;
         }
 
-        document.getElementById('authMessage').innerHTML = 
-            '<div class="success-message">✅ Account created! Check your email for verification code.</div>';
-        
-        localStorage.setItem('pending_email', email);
-        localStorage.setItem('pending_password', password);
-        
-        document.getElementById('authFormElement').style.display = 'none';
-        document.getElementById('verificationSection').style.display = 'block';
-        
-        return true;
-    } catch (error) {
-        document.getElementById('authMessage').innerHTML = 
-            `<div class="error-message">❌ ${error.message}</div>`;
-        return false;
-    }
+        const attributeList = [
+            new AmazonCognitoIdentity.CognitoUserAttribute({
+                Name: 'email',
+                Value: email
+            })
+        ];
+
+        userPool.signUp(email, password, attributeList, null, (err, result) => {
+            if (err) {
+                document.getElementById('authMessage').innerHTML = 
+                    `<div class="error-message">❌ ${err.message}</div>`;
+                reject(err);
+                return;
+            }
+
+            cognitoUser = result.user;
+            document.getElementById('authMessage').innerHTML = 
+                '<div class="success-message">✅ Account created! Check your email for verification code.</div>';
+            
+            document.getElementById('verifyEmail').textContent = email;
+            document.getElementById('authFormElement').style.display = 'none';
+            document.getElementById('verificationSection').style.display = 'block';
+            
+            resolve(result);
+        });
+    });
 }
 
-// Verify Email Function
+// Real Email Verification
 async function handleVerifyEmail(code) {
-    try {
-        if (code.length === 6) {
+    return new Promise((resolve, reject) => {
+        if (!cognitoUser) {
             document.getElementById('authMessage').innerHTML = 
-                '<div class="success-message">✅ Email verified! Please sign in.</div>';
-            
-            localStorage.removeItem('pending_email');
-            localStorage.removeItem('pending_password');
+                '<div class="error-message">❌ No user to verify. Please sign up first.</div>';
+            return;
+        }
+
+        cognitoUser.confirmRegistration(code, true, (err, result) => {
+            if (err) {
+                document.getElementById('authMessage').innerHTML = 
+                    `<div class="error-message">❌ ${err.message}</div>`;
+                reject(err);
+                return;
+            }
+
+            document.getElementById('authMessage').innerHTML = 
+                '<div class="success-message">✅ Email verified successfully! Please sign in.</div>';
             
             setTimeout(() => {
                 showAuthModal('signin');
             }, 2000);
             
-            return true;
-        } else {
-            throw new Error('Please enter a valid 6-digit code');
-        }
-    } catch (error) {
-        document.getElementById('authMessage').innerHTML = 
-            `<div class="error-message">❌ ${error.message}</div>`;
-        return false;
-    }
+            resolve(result);
+        });
+    });
 }
 
-// Sign In Function
+// Real Sign In with Cognito
 async function handleSignIn(email, password) {
-    try {
+    return new Promise((resolve, reject) => {
         if (!email.endsWith('@esade.edu') && !email.endsWith('@alumni.esade.edu')) {
-            throw new Error('Please use an ESADE email address');
+            document.getElementById('authMessage').innerHTML = 
+                '<div class="error-message">❌ Please use an ESADE email address</div>';
+            return;
         }
 
-        if (password.length >= 8) {
-            localStorage.setItem('esade_auth_token', 'demo_token_' + Date.now());
-            localStorage.setItem('esade_user', JSON.stringify({ email: email }));
-            
-            currentUser = { email: email };
-            
-            document.getElementById('authMessage').innerHTML = 
-                '<div class="success-message">✅ Signed in successfully!</div>';
-            
-            setTimeout(() => {
-                showDashboard();
-                loadRecommendations();
-            }, 1000);
-            
-            return true;
-        } else {
-            throw new Error('Password must be at least 8 characters');
-        }
-    } catch (error) {
-        document.getElementById('authMessage').innerHTML = 
-            `<div class="error-message">❌ ${error.message}</div>`;
-        return false;
-    }
+        const authenticationData = {
+            Username: email,
+            Password: password
+        };
+        
+        const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
+        
+        const userData = {
+            Username: email,
+            Pool: userPool
+        };
+        
+        cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+        
+        cognitoUser.authenticateUser(authenticationDetails, {
+            onSuccess: (result) => {
+                currentUser = { email: email };
+                document.getElementById('authMessage').innerHTML = 
+                    '<div class="success-message">✅ Signed in successfully!</div>';
+                
+                setTimeout(() => {
+                    showDashboard();
+                    loadRecommendations();
+                }, 1000);
+                
+                resolve(result);
+            },
+            onFailure: (err) => {
+                document.getElementById('authMessage').innerHTML = 
+                    `<div class="error-message">❌ ${err.message}</div>`;
+                reject(err);
+            }
+        });
+    });
 }
 
-// Sign Out Function
+// Resend Verification Code
+async function resendVerificationCode() {
+    if (!cognitoUser) {
+        document.getElementById('authMessage').innerHTML = 
+            '<div class="error-message">❌ No user to resend code to.</div>';
+        return;
+    }
+
+    cognitoUser.resendConfirmationCode((err, result) => {
+        if (err) {
+            document.getElementById('authMessage').innerHTML = 
+                `<div class="error-message">❌ ${err.message}</div>`;
+            return;
+        }
+        
+        document.getElementById('authMessage').innerHTML = 
+            '<div class="success-message">✅ Verification code resent! Check your email.</div>';
+    });
+}
+
+// Real Sign Out
 function handleSignOut() {
-    localStorage.removeItem('esade_auth_token');
-    localStorage.removeItem('esade_user');
+    if (cognitoUser) {
+        cognitoUser.signOut();
+    }
     currentUser = null;
+    cognitoUser = null;
     showWelcome();
 }
 
@@ -191,24 +257,30 @@ document.getElementById('authFormElement').addEventListener('submit', async (e) 
     const email = document.getElementById('emailInput').value;
     const password = document.getElementById('passwordInput').value;
     
-    if (mode === 'signup') {
-        await handleSignUp(email, password);
-    } else {
-        await handleSignIn(email, password);
+    try {
+        if (mode === 'signup') {
+            await handleSignUp(email, password);
+        } else {
+            await handleSignIn(email, password);
+        }
+    } catch (error) {
+        console.error('Authentication error:', error);
     }
 });
 
 document.getElementById('verifyBtn').addEventListener('click', async () => {
     const code = document.getElementById('verificationCode').value;
-    await handleVerifyEmail(code);
+    try {
+        await handleVerifyEmail(code);
+    } catch (error) {
+        console.error('Verification error:', error);
+    }
 });
 
 document.getElementById('resendCode').addEventListener('click', async () => {
-    document.getElementById('authMessage').innerHTML = 
-        '<div class="success-message">✅ Verification code resent!</div>';
+    await resendVerificationCode();
 });
 
-// Close modal when clicking outside
 window.addEventListener('click', (e) => {
     const modal = document.getElementById('authModal');
     if (e.target === modal) {

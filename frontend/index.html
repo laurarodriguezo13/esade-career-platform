@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ESADE Career Intelligence Platform</title>
     <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- AWS Cognito SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@6.3.6/dist/amazon-cognito-identity.min.js"></script>
 </head>
 <body>
     <header>
@@ -66,7 +69,7 @@
             
             <div id="authMessage"></div>
             
-            <form id="authFormElement" style="display: block;">
+            <form id="authFormElement">
                 <input type="hidden" id="authMode" value="signin">
                 
                 <div class="form-group">
@@ -77,13 +80,15 @@
                 <div class="form-group">
                     <label for="passwordInput">Password</label>
                     <input type="password" id="passwordInput" placeholder="Min. 8 characters" required>
+                    <small style="color: #666;">Must include uppercase, lowercase, number, and special character</small>
                 </div>
                 
                 <button type="submit" class="btn-primary btn-block">Continue</button>
             </form>
             
             <div id="verificationSection" style="display: none;">
-                <p>Enter the 6-digit verification code sent to your email:</p>
+                <p>A verification code has been sent to <strong id="verifyEmail"></strong></p>
+                <p>Please check your email and enter the 6-digit code:</p>
                 <div class="form-group">
                     <input type="text" id="verificationCode" placeholder="000000" maxlength="6" required>
                 </div>
