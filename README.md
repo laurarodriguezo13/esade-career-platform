@@ -2,7 +2,7 @@
 
 A serverless career intelligence platform built on AWS, integrating real-time job data from Adzuna API with AI-powered recommendations.
 
-## 🎯 Project Overview
+## Project Overview
 
 This platform provides ESADE students and alumni with personalized job recommendations by leveraging:
 - Real-time job data from Adzuna API (Spain market)
@@ -10,7 +10,7 @@ This platform provides ESADE students and alumni with personalized job recommend
 - Serverless architecture for scalability and cost-efficiency
 - Secure authentication with ESADE email domain restrictions
 
-## 🏗️ Architecture
+## Architecture
 
 ### Infrastructure Components
 
@@ -43,16 +43,16 @@ This platform provides ESADE students and alumni with personalized job recommend
 - Modular design for reusability
 - Environment-based configuration
 
-## 📊 Key Features
+## Key Features
 
-✅ **Real Job Data**: 21+ jobs from Adzuna API, refreshed automatically
-✅ **Smart Matching**: NLP-powered skill extraction and matching
-✅ **Secure Access**: Domain-restricted authentication
-✅ **Scalable**: Serverless architecture handles varying loads
-✅ **Cost-Efficient**: Pay-per-use pricing model
-✅ **Professional UI**: ESADE-branded dashboard
+ **Real Job Data**: 21+ jobs from Adzuna API, refreshed automatically
+ **Smart Matching**: NLP-powered skill extraction and matching
+ **Secure Access**: Domain-restricted authentication
+ **Scalable**: Serverless architecture handles varying loads
+ **Cost-Efficient**: Pay-per-use pricing model
+ **Professional UI**: ESADE-branded dashboard
 
-## 🚀 Deployment Information
+## Deployment Information
 
 **Environment:** Development (dev)
 **Region:** eu-west-1 (Ireland)
@@ -97,12 +97,12 @@ esade-career-platform/
 ### DevOps
 - Terraform, GitHub
 
-## 🎓 Academic Context
+## Academic Context
 
-**Course:** AWS Academy Cloud Solutions Architecture
+**Course:** Cloud Solutions 
 **Institution:** ESADE Business School
 
-## 👥 Team
+## Team
 
  Laura Rodriguez, Lorena Pinillos, Margi Ivanova , Kim Schäfer & Tasnim El Faghloumi
 
