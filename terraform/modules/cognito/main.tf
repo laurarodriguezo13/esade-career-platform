@@ -51,8 +51,12 @@ resource "aws_cognito_user_pool_client" "main" {
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_flows                  = ["code", "implicit"]
   allowed_oauth_scopes                 = ["email", "openid", "profile"]
-  callback_urls                        = ["http://localhost:3000/callback", "https://${data.aws_caller_identity.current.account_id}.s3-website-eu-west-1.amazonaws.com/callback"]
-  logout_urls                          = ["http://localhost:3000/logout"]
+  callback_urls                        = [
+    "http://localhost:3000"
+  ]
+  logout_urls                          = [
+    "http://localhost:3000"
+  ]
   supported_identity_providers         = ["COGNITO"]
 
   explicit_auth_flows = [
@@ -70,11 +74,3 @@ resource "aws_cognito_user_pool_domain" "main" {
 }
 
 data "aws_caller_identity" "current" {}
-
-resource "aws_lambda_permission" "cognito_pre_signup" {
-  statement_id  = "AllowCognitoInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = var.pre_signup_lambda_arn
-  principal     = "cognito-idp.amazonaws.com"
-  source_arn    = aws_cognito_user_pool.main.arn
-}
