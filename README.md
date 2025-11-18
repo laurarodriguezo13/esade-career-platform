@@ -65,18 +65,38 @@ All Lambda functions are deployed:
 esade-career-platform/
 ├── aws_architecture.html
 ├── backend/
-│ ├── cognito_trigger/
-│ ├── job_ingestion/
-│ ├── nlp_enrichment/
-│ └── recommendations/
+│   ├── cognito_trigger/
+│   │   └── index.py
+│   ├── job_ingestion/
+│   │   └── index.py
+│   ├── nlp_enrichment/
+│   │   └── index.py
+│   └── recommendations/
+│       └── index.py
 ├── frontend/
-│ ├── css/
-│ ├── js/
-│ ├── index.html
-│ └── error.html
+│   ├── css/
+│   │   └── styles.css
+│   ├── js/
+│   │   ├── app.js
+│   │   ├── auth.js
+│   │   └── config.js
+│   ├── index.html
+│   └── error.html
 └── terraform/
-├── environments/dev/
-└── modules/
+    ├── environments/
+    │   └── dev/
+    │       ├── main.tf
+    │       ├── variables.tf
+    │       ├── outputs.tf
+    │       └── backend.tf
+    └── modules/
+        ├── cognito/
+        ├── dynamodb/
+        ├── iam/
+        ├── lambda/
+        ├── s3/
+        └── cloudfront/
+
 
 
 ---
