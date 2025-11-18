@@ -62,6 +62,7 @@ All Lambda functions are deployed:
 
 ## Repository Structure
 
+
 esade-career-platform/
 ├── aws_architecture.html
 ├── backend/
@@ -96,7 +97,6 @@ esade-career-platform/
         ├── lambda/
         ├── s3/
         └── cloudfront/
-
 
 
 ---
