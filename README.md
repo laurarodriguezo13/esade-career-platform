@@ -1,112 +1,95 @@
 # ESADE Career Intelligence Platform
+A serverless career-intelligence prototype built entirely on AWS and developed as part of the ESADE Cloud Solutions coursework.
 
-A serverless career intelligence platform built on AWS, integrating real-time job data from Adzuna API with AI-powered recommendations.
+## Overview
+The platform helps ESADE students and alumni explore job opportunities through secure authentication, job-market insights and a scalable serverless backend.  
+The frontend provides a complete user experience using Amazon Cognito authentication and client-side recommendations, while the backend ingestion and NLP pipelines run independently in AWS.
 
-## Project Overview
+---
 
-This platform provides ESADE students and alumni with personalized job recommendations by leveraging:
-- Real-time job data from Adzuna API (Spain market)
-- NLP-powered skill extraction using AWS Comprehend
-- Serverless architecture for scalability and cost-efficiency
-- Secure authentication with ESADE email domain restrictions
+## Architecture Summary
 
-## Architecture
+### Frontend (Amazon S3)
+- Static HTML/CSS/JS site hosted on S3  
+- Cognito authentication (signup, verification, login)  
+- Representative job dataset and ranking logic implemented client-side in `app.js`  
+- Live demo:  
+  **http://esade-career-dev-frontend-260727659404.s3-website-eu-west-1.amazonaws.com**
 
-### Infrastructure Components
+### Authentication (Amazon Cognito)
+- ESADE-only signup enforced through a Pre-Signup Lambda trigger  
+- Email verification workflow enabled  
+- Client-side session handling via Cognito tokens
 
-**Frontend:**
-- Static website hosted on Amazon S3
-- Responsive design with ESADE branding
-- Real-time job search and recommendations
+### Data Layer (DynamoDB)
+Provisioned with Terraform:
 
-**Backend Services:**
-- **4 Lambda Functions** (Python 3.11):
-  1. `job-ingestion`: Fetches jobs from Adzuna API
-  2. `nlp-enrichment`: Extracts skills using Amazon Comprehend
-  3. `recommendations`: Generates personalized job matches
-  4. `cognito-trigger`: Validates ESADE email domains
+- `jobs-live` — normalized job postings  
+- `skill-trends` — aggregated skill frequencies  
+- `user-profiles` — provisioned for future integration  
+- `recommendations` — backend placeholder table  
 
-**Data Layer:**
-- **4 DynamoDB Tables**:
-  - `jobs-live`: Active job postings with TTL
-  - `skill-trends`: Aggregated skill demand data
-  - `user-profiles`: Student preferences and history
-  - `recommendations`: Pre-computed job matches
+TTL is enabled to automatically remove expired items.
 
-**Security & Authentication:**
-- Amazon Cognito User Pool with custom triggers
-- Email domain restrictions (@esade.edu, @alumni.esade.edu)
-- IAM roles with least-privilege access
+### Backend (AWS Lambda)
+All Lambda functions are deployed:
 
-**Infrastructure as Code:**
-- 100% Terraform managed (37 resources)
-- Modular design for reusability
-- Environment-based configuration
+- `job-ingestion` — retrieves job data from Adzuna  
+- `nlp-enrichment` — extracts skills using Amazon Comprehend  
+- `recommendations` — placeholder (frontend currently performs ranking)  
+- `cognito-trigger` — enforces allowed email domains  
 
-## Key Features
+### Security & Secrets
+- Adzuna credentials stored in AWS Secrets Manager  
+- IAM roles follow least-privilege design  
+- Cognito enforces password complexity and email verification  
 
- **Real Job Data**: 21+ jobs from Adzuna API, refreshed automatically
- **Smart Matching**: NLP-powered skill extraction and matching
- **Secure Access**: Domain-restricted authentication
- **Scalable**: Serverless architecture handles varying loads
- **Cost-Efficient**: Pay-per-use pricing model
- **Professional UI**: ESADE-branded dashboard
+### Infrastructure as Code (Terraform)
+- Fully modular IaC (Cognito, Lambda, IAM, DynamoDB, S3, CloudFront)  
+- Dev environment via `terraform/environments/dev/`  
+- Automated packaging and deployment for Lambda functions  
 
-## Deployment Information
+---
 
-**Environment:** Development (dev)
-**Region:** eu-west-1 (Ireland)
-**Website URL:** http://esade-career-dev-frontend-260727659404.s3-website-eu-west-1.amazonaws.com
+## Prototype Behaviour (Current Implementation)
+- Authentication is fully functional (real signup & verification).  
+- Backend ingestion and NLP pipelines run in AWS.  
+- The frontend displays a curated sample of jobs stored in `app.js`.  
+- Job recommendations are computed client-side.  
+- API Gateway connection is planned for the next version.
 
-### Current Data:
-- **Jobs in Database:** 21 real positions from Adzuna
-- **Job Sources:** Barcelona, Madrid, Remote positions
-- **Industries:** Technology, Consulting, Finance, Other
-- **Lambda Functions:** 4 active functions
-- **DynamoDB Tables:** 4 tables with TTL enabled
+---
 
-## 📁 Repository Structure
-```
+## Repository Structure
+
 esade-career-platform/
+├── aws_architecture.html
 ├── backend/
-│   ├── job_ingestion/          # Adzuna API integration
-│   ├── nlp_enrichment/         # Comprehend skill extraction
-│   ├── recommendations/        # Job matching algorithm
-│   └── cognito_trigger/        # Email validation
+│ ├── cognito_trigger/
+│ ├── job_ingestion/
+│ ├── nlp_enrichment/
+│ └── recommendations/
 ├── frontend/
-│   ├── css/styles.css          # ESADE-themed styling
-│   ├── js/                     # Application logic
-│   ├── index.html              # Main dashboard
-│   └── error.html              # Error page
-├── terraform/
-│   ├── modules/                # Reusable Terraform modules
-│   └── environments/dev/       # Development environment
-└── README.md
-```
-
-## 🔧 Technologies Used
-
-### AWS Services
-- AWS Lambda, S3, DynamoDB
-- Cognito, IAM, Secrets Manager
-- Amazon Comprehend, CloudWatch
-
-### External APIs
-- Adzuna Jobs API
-
-### DevOps
-- Terraform, GitHub
-
-## Academic Context
-
-**Course:** Cloud Solutions 
-**Institution:** ESADE Business School
-
-## Team
-
- Laura Rodriguez, Lorena Pinillos, Margi Ivanova , Kim Schäfer & Tasnim El Faghloumi
+│ ├── css/
+│ ├── js/
+│ ├── index.html
+│ └── error.html
+└── terraform/
+├── environments/dev/
+└── modules/
 
 
 ---
 
-**Note:** Educational project for AWS Academy demonstrating cloud architecture skills.
+## Technologies
+**AWS:** S3, Lambda, DynamoDB, Cognito, IAM, Secrets Manager, Comprehend  
+**External API:** Adzuna Jobs API  
+**DevOps:** Terraform, GitHub  
+**Languages:** JavaScript, Python, HCL  
+
+---
+
+## Team
+Lorena Pinillos, Laura Rodriguez, Margi Ivanova, Kim Schäfer & Tasnim El Faghloumi  
+*Educational project developed for ESADE Business School.*
+
