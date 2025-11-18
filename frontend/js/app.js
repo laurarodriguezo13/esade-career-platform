@@ -1,294 +1,122 @@
-// Application Logic
-console.log('App.js loaded');
-
+console.log('App.js loaded - Full Version');
 let allJobs = [];
+let filteredJobs = [];
 
-// Load recommendations when dashboard is shown
-function loadRecommendations() {
-    console.log('Loading recommendations...');
-    
-    // Real jobs from Adzuna API (stored in DynamoDB)
-    const realJobs = [
-        {
-            title: 'Data Scientist',
-            company: 'Smadex SLU',
-            location: 'Barcelona',
-            skills: ['Machine Learning', 'Python', 'Data Analysis'],
-            matchScore: 92,
-            url: 'https://www.adzuna.es/details/5499494183?utm_medium=api&utm_source=b6b04941',
-            description: 'Leading advertising technology company seeking Data Scientist for ML algorithms.'
-        },
-        {
-            title: 'Junior Consultant Systems Engineering',
-            company: 'INVENSITY Stellenportal',
-            location: 'Barcelona',
-            skills: ['Systems Engineering', 'Automation', 'Project Management'],
-            matchScore: 85,
-            url: 'https://www.adzuna.es/details/5499519046?utm_medium=api&utm_source=b6b04941',
-            description: 'Support planning, design, and development of production systems and automated work cells.'
-        },
-        {
-            title: 'Operations Lead - Customer Success',
-            company: 'Dynatrace',
-            location: 'Barcelona',
-            skills: ['Communication', 'Operations', 'SaaS'],
-            matchScore: 78,
-            url: 'https://www.adzuna.es/details/5499720558?utm_medium=api&utm_source=b6b04941',
-            description: 'Seasoned Operations Lead for Customer Success with SaaS industry experience.'
-        },
-        {
-            title: 'Product Manager',
-            company: 'Barcelona Tech Hub',
-            location: 'Barcelona',
-            skills: ['Product Management', 'Agile', 'Strategy'],
-            matchScore: 81,
-            url: 'https://www.adzuna.es/jobs/barcelona/product-manager',
-            description: 'Lead product strategy and development for innovative tech solutions.'
-        },
-        {
-            title: 'Business Analyst',
-            company: 'Consulting Firm BCN',
-            location: 'Barcelona',
-            skills: ['Business Analysis', 'Excel', 'SQL'],
-            matchScore: 76,
-            url: 'https://www.adzuna.es/jobs/barcelona/business-analyst',
-            description: 'Analyze business processes and provide data-driven recommendations.'
-        },
-        {
-            title: 'Digital Marketing Manager',
-            company: 'E-commerce Barcelona',
-            location: 'Barcelona',
-            skills: ['Digital Marketing', 'SEO', 'Analytics'],
-            matchScore: 73,
-            url: 'https://www.adzuna.es/jobs/barcelona/digital-marketing-manager',
-            description: 'Drive digital marketing strategy for growing e-commerce platform.'
-        },
-        {
-            title: 'Software Engineer',
-            company: 'Tech Startup BCN',
-            location: 'Barcelona',
-            skills: ['JavaScript', 'React', 'Node.js'],
-            matchScore: 88,
-            url: 'https://www.adzuna.es/jobs/barcelona/software-engineer',
-            description: 'Build scalable web applications for innovative startup.'
-        },
-        {
-            title: 'Financial Analyst',
-            company: 'Investment Bank Madrid',
-            location: 'Madrid',
-            skills: ['Financial Modeling', 'Excel', 'SQL'],
-            matchScore: 79,
-            url: 'https://www.adzuna.es/jobs/madrid/financial-analyst',
-            description: 'Analyze financial data and create investment recommendations.'
-        },
-        {
-            title: 'UX Designer',
-            company: 'Design Agency',
-            location: 'Barcelona',
-            skills: ['UX Design', 'Figma', 'User Research'],
-            matchScore: 71,
-            url: 'https://www.adzuna.es/jobs/barcelona/ux-designer',
-            description: 'Create user-centered designs for digital products.'
-        },
-        {
-            title: 'Data Engineer',
-            company: 'Big Data Corp',
-            location: 'Madrid',
-            skills: ['Python', 'SQL', 'AWS'],
-            matchScore: 86,
-            url: 'https://www.adzuna.es/jobs/madrid/data-engineer',
-            description: 'Build and maintain data pipelines for analytics platform.'
-        },
-        {
-            title: 'Management Consultant',
-            company: 'Strategy Consulting BCN',
-            location: 'Barcelona',
-            skills: ['Strategy', 'Business Analysis', 'Project Management'],
-            matchScore: 82,
-            url: 'https://www.adzuna.es/jobs/barcelona/management-consultant',
-            description: 'Advise clients on business strategy and operational improvements.'
-        },
-        {
-            title: 'HR Business Partner',
-            company: 'Tech Company Barcelona',
-            location: 'Barcelona',
-            skills: ['HR', 'Communication', 'Recruitment'],
-            matchScore: 74,
-            url: 'https://www.adzuna.es/jobs/barcelona/hr-business-partner',
-            description: 'Partner with business leaders on talent strategy and organizational development.'
-        }
-    ];
-    
-    allJobs = realJobs;
-    
-    // Get user preferences
-    const userPreferences = getUserPreferences();
-    
-    // Filter and sort jobs based on preferences
-    let filteredJobs = filterJobsByPreferences(realJobs, userPreferences);
-    
-    // Display top jobs
+async function loadRecommendations() {
     const container = document.getElementById('recommendedJobs');
-    displayJobs(filteredJobs.slice(0, 5), container);
+    container.innerHTML = '<p>Loading jobs...</p>';
     
+    try {
+        const prefs = getUserPreferences();
+        let url = CONFIG.api.endpoint + '/jobs';
+        const params = new URLSearchParams();
+        
+        if (prefs.locations && prefs.locations[0]) {
+            params.append('location', prefs.locations[0]);
+        }
+        if (prefs.skills && prefs.skills.length > 0) {
+            params.append('skills', prefs.skills.join(','));
+        }
+        
+        if (params.toString()) url += '?' + params.toString();
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        filteredJobs = data.success ? data.jobs : [];
+        
+        // Load all jobs for search
+        const allResponse = await fetch(CONFIG.api.endpoint + '/jobs');
+        const allData = await allResponse.json();
+        allJobs = allData.success ? allData.jobs : [];
+        
+    } catch (e) {
+        console.error('API Error:', e);
+        filteredJobs = [];
+        allJobs = [];
+    }
+    
+    displayJobs(filteredJobs.slice(0, 10), container);
     loadTrendingSkills();
 }
 
 function getUserPreferences() {
-    // Get from localStorage or use defaults
     const saved = localStorage.getItem('user_preferences');
-    if (saved) {
-        return JSON.parse(saved);
-    }
-    
-    // Default preferences
-    return {
-        skills: ['Python', 'Data Analysis', 'Machine Learning'],
-        locations: ['Barcelona'],
-        industries: ['Technology', 'Consulting']
-    };
-}
-
-function filterJobsByPreferences(jobs, preferences) {
-    // Calculate match score based on user preferences
-    return jobs.map(job => {
-        let score = 0;
-        
-        // Skill matching (40% weight)
-        const skillMatches = job.skills.filter(skill => 
-            preferences.skills.some(userSkill => 
-                skill.toLowerCase().includes(userSkill.toLowerCase()) ||
-                userSkill.toLowerCase().includes(skill.toLowerCase())
-            )
-        ).length;
-        score += (skillMatches / Math.max(job.skills.length, 1)) * 40;
-        
-        // Location matching (30% weight)
-        if (preferences.locations.includes(job.location)) {
-            score += 30;
-        }
-        
-        // Base score (30% weight)
-        score += 30;
-        
-        return {
-            ...job,
-            matchScore: Math.min(95, Math.round(score))
-        };
-    }).sort((a, b) => b.matchScore - a.matchScore);
+    return saved ? JSON.parse(saved) : {skills: ['Python', 'Data Analysis'], locations: ['Barcelona'], industries: ['Technology']};
 }
 
 function loadTrendingSkills() {
     const container = document.getElementById('trendingSkills');
-    
-    const skills = [
-        'Machine Learning', 'Python', 'Data Analysis', 'Systems Engineering',
-        'Communication', 'Agile', 'Product Management', 'SQL', 
-        'Business Analysis', 'Strategy', 'Project Management', 'Automation'
-    ];
-    
-    container.innerHTML = skills.map(skill => 
-        `<span class="skill-tag" onclick="filterBySkill('${skill}')">${skill}</span>`
-    ).join('');
+    if (!container) return;
+    const skills = ['Machine Learning', 'Python', 'Data Analysis', 'Communication', 'Agile', 'Excel', 'SQL', 'AWS'];
+    container.innerHTML = skills.map(s => `<span class="skill-tag" onclick="filterBySkill('${s}')">${s}</span>`).join('');
 }
 
 function filterBySkill(skill) {
-    const userPrefs = getUserPreferences();
-    if (!userPrefs.skills.includes(skill)) {
-        userPrefs.skills.push(skill);
-        localStorage.setItem('user_preferences', JSON.stringify(userPrefs));
+    const prefs = getUserPreferences();
+    if (!prefs.skills.includes(skill)) {
+        prefs.skills.push(skill);
+        localStorage.setItem('user_preferences', JSON.stringify(prefs));
     }
     loadRecommendations();
 }
 
 function displayJobs(jobs, container) {
-    if (jobs.length === 0) {
-        container.innerHTML = '<p>No jobs found matching your criteria.</p>';
-        return;
-    }
-    
+    if (!jobs.length) { container.innerHTML = '<p>No jobs found for your preferences.</p>'; return; }
     container.innerHTML = jobs.map(job => `
         <div class="job-item">
             <div class="job-title">${job.title}</div>
             <div class="job-company">${job.company}</div>
-            <div class="job-details">
-                <span>📍 ${job.location}</span>
-                <span>✨ Match: ${job.matchScore}%</span>
-            </div>
-            <p style="margin: 0.5rem 0; color: #666; font-size: 0.9rem;">${job.description}</p>
-            <div style="margin-top: 0.5rem;">
-                ${job.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
-            </div>
-            <a href="${job.url}" target="_blank" class="job-link">View Job Posting →</a>
+            <div class="job-details"><span>📍 ${job.location}</span><span>✨ ${job.matchScore}%</span></div>
+            <p style="margin:0.5rem 0;color:#666;font-size:0.9rem">${job.description}</p>
+            <div>${(job.skills||[]).map(s => `<span class="skill-tag">${s}</span>`).join('')}</div>
+            <a href="${job.url}" target="_blank" class="job-link">View Job →</a>
         </div>
     `).join('');
 }
 
-// Search functionality
 document.addEventListener('DOMContentLoaded', function() {
-    const searchBtn = document.getElementById('searchBtn');
-    const searchInput = document.getElementById('searchInput');
-    
-    if (searchBtn && searchInput) {
-        searchBtn.addEventListener('click', performSearch);
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                performSearch();
-            }
-        });
+    const btn = document.getElementById('searchBtn');
+    const input = document.getElementById('searchInput');
+    if (btn && input) {
+        btn.addEventListener('click', performSearch);
+        input.addEventListener('keypress', e => { if (e.key === 'Enter') performSearch(); });
     }
-    
-    // Add preferences button
     addPreferencesButton();
 });
 
 function performSearch() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-    const resultsContainer = document.getElementById('searchResults');
+    const input = document.getElementById('searchInput');
+    const results = document.getElementById('searchResults');
+    if (!input || !results) return;
+    const term = input.value.toLowerCase().trim();
+    if (!term) { results.innerHTML = '<p>Enter a search term.</p>'; return; }
     
-    if (!searchTerm) {
-        resultsContainer.innerHTML = '<p style="color: #666;">Please enter a search term.</p>';
-        return;
-    }
-    
-    // Filter jobs based on search term
-    const filteredJobs = allJobs.filter(job => 
-        job.title.toLowerCase().includes(searchTerm) ||
-        job.company.toLowerCase().includes(searchTerm) ||
-        job.description.toLowerCase().includes(searchTerm) ||
-        job.skills.some(skill => skill.toLowerCase().includes(searchTerm)) ||
-        job.location.toLowerCase().includes(searchTerm)
+    const filtered = allJobs.filter(j => 
+        j.title.toLowerCase().includes(term) || 
+        j.company.toLowerCase().includes(term) || 
+        j.location.toLowerCase().includes(term) ||
+        j.description.toLowerCase().includes(term) ||
+        (j.skills||[]).some(s => s.toLowerCase().includes(term))
     );
     
-    if (filteredJobs.length === 0) {
-        resultsContainer.innerHTML = `
-            <p style="color: #666; margin-top: 1rem;">
-                No jobs found for "${searchTerm}". Try searching for:
-                <strong>data</strong>, <strong>consultant</strong>, 
-                <strong>product</strong>, or <strong>marketing</strong>
-            </p>
-        `;
+    if (!filtered.length) {
+        results.innerHTML = `<p>No jobs found for "${term}".</p>`;
     } else {
-        resultsContainer.innerHTML = `
-            <h4 style="margin-top: 1.5rem; color: #003d82;">
-                Found ${filteredJobs.length} job${filteredJobs.length > 1 ? 's' : ''} for "${searchTerm}"
-            </h4>
-        `;
-        displayJobs(filteredJobs, resultsContainer);
+        results.innerHTML = `<h4 style="margin:1rem 0;color:#003d82">Found ${filtered.length} job(s) for "${term}"</h4>`;
+        displayJobs(filtered, results);
     }
 }
 
 function addPreferencesButton() {
-    // Add preferences modal button to header
     const nav = document.querySelector('header nav');
     if (nav && !document.getElementById('preferencesBtn')) {
-        const prefsBtn = document.createElement('button');
-        prefsBtn.id = 'preferencesBtn';
-        prefsBtn.className = 'btn-secondary';
-        prefsBtn.textContent = '⚙️ Preferences';
-        prefsBtn.style.marginRight = '1rem';
-        prefsBtn.onclick = showPreferencesModal;
-        nav.insertBefore(prefsBtn, nav.firstChild);
+        const btn = document.createElement('button');
+        btn.id = 'preferencesBtn';
+        btn.className = 'btn-secondary';
+        btn.textContent = '⚙️ Preferences';
+        btn.style.marginRight = '1rem';
+        btn.onclick = showPreferencesModal;
+        nav.insertBefore(btn, nav.firstChild);
     }
 }
 
@@ -296,92 +124,36 @@ function showPreferencesModal() {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'flex';
-    
-    const userPrefs = getUserPreferences();
-    
+    const prefs = getUserPreferences();
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-content" style="max-width:600px">
             <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
             <h2>Your Preferences</h2>
-            
-            <div class="form-group">
-                <label>Your Skills (comma-separated)</label>
-                <input type="text" id="prefsSkills" value="${userPrefs.skills.join(', ')}" 
-                       placeholder="Python, Data Analysis, Machine Learning">
+            <div class="form-group"><label>Skills</label><input type="text" id="prefsSkills" value="${prefs.skills.join(', ')}"></div>
+            <div class="form-group"><label>Location</label>
+                <select id="prefsLocations">
+                    <option value="Barcelona" ${prefs.locations[0]==='Barcelona'?'selected':''}>🇪🇸 Barcelona</option>
+                    <option value="Madrid" ${prefs.locations[0]==='Madrid'?'selected':''}>🇪🇸 Madrid</option>
+                    <option value="London" ${prefs.locations[0]==='London'?'selected':''}>🇬🇧 London</option>
+                    <option value="Paris" ${prefs.locations[0]==='Paris'?'selected':''}>🇫🇷 Paris</option>
+                    <option value="Berlin" ${prefs.locations[0]==='Berlin'?'selected':''}>🇩🇪 Berlin</option>
+                    <option value="Amsterdam" ${prefs.locations[0]==='Amsterdam'?'selected':''}>🇳🇱 Amsterdam</option>
+                </select>
             </div>
-            
-            <div class="form-group">
-                <label>Preferred Locations (comma-separated)</label>
-                <input type="text" id="prefsLocations" value="${userPrefs.locations.join(', ')}" 
-                       placeholder="Barcelona, Madrid">
-            </div>
-            
-            <div class="form-group">
-                <label>Industries of Interest (comma-separated)</label>
-                <input type="text" id="prefsIndustries" value="${userPrefs.industries.join(', ')}" 
-                       placeholder="Technology, Consulting, Finance">
-            </div>
-            
-            <button onclick="savePreferences()" class="btn-primary btn-block">
-                Save Preferences
-            </button>
-            
-            <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
-                💡 Your preferences help us recommend the most relevant jobs for you.
-            </p>
-        </div>
-    `;
-    
+            <div class="form-group"><label>Industries</label><input type="text" id="prefsIndustries" value="${prefs.industries.join(', ')}"></div>
+            <button onclick="savePreferences()" class="btn-primary btn-block">Save & Refresh</button>
+        </div>`;
     document.body.appendChild(modal);
-    
-    // Close on outside click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.remove();
-        }
-    });
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
 }
 
 function savePreferences() {
-    const skills = document.getElementById('prefsSkills').value
-        .split(',')
-        .map(s => s.trim())
-        .filter(s => s.length > 0);
-    
-    const locations = document.getElementById('prefsLocations').value
-        .split(',')
-        .map(s => s.trim())
-        .filter(s => s.length > 0);
-    
-    const industries = document.getElementById('prefsIndustries').value
-        .split(',')
-        .map(s => s.trim())
-        .filter(s => s.length > 0);
-    
-    const preferences = { skills, locations, industries };
-    localStorage.setItem('user_preferences', JSON.stringify(preferences));
-    
-    // Close modal
+    const prefs = {
+        skills: document.getElementById('prefsSkills').value.split(',').map(s => s.trim()).filter(s => s),
+        locations: [document.getElementById('prefsLocations').value],
+        industries: document.getElementById('prefsIndustries').value.split(',').map(s => s.trim()).filter(s => s)
+    };
+    localStorage.setItem('user_preferences', JSON.stringify(prefs));
     document.querySelector('.modal').remove();
-    
-    // Reload recommendations with new preferences
     loadRecommendations();
-    
-    // Show success message
-    const message = document.createElement('div');
-    message.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #d4edda;
-        color: #155724;
-        padding: 1rem 1.5rem;
-        border-radius: 4px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        z-index: 10000;
-    `;
-    message.textContent = '✅ Preferences saved! Jobs updated.';
-    document.body.appendChild(message);
-    
-    setTimeout(() => message.remove(), 3000);
 }
